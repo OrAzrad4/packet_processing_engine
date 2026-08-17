@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpacket_engine.a CMakeFiles/packet_engine.dir/src/ring_buffer.c.o CMakeFiles/packet_engine.dir/src/packet_pool.c.o
-/usr/bin/ranlib libpacket_engine.a
