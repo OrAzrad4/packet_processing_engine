@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
 typedef struct {      // Pipeline context structure beacause we need to pass both the packet pool and the ring buffer to the thread function
     PacketPool *pool;
@@ -10,8 +11,8 @@ typedef struct {      // Pipeline context structure beacause we need to pass bot
 } PipelineContext;
 
 void *producer_thread(void *arg){
-    pipelineContext *ctx = arg;
-    Packet* pacet = packet_pool_acquire(ctx->pool);
+    PipelineContext *ctx = arg;
+    Packet* packet = packet_pool_acquire(ctx->pool);
         if (!packet) {
         return NULL;
     }
@@ -24,7 +25,7 @@ void *producer_thread(void *arg){
         .length = packet->length,
         .id = packet->id
     };
-
+    sleep(1);
     ring_buffer_push(ctx->ring, &descriptor);
 
     return NULL;
@@ -36,12 +37,13 @@ void *consumer_thread(void *arg)
     PipelineContext *ctx = arg;
 
     PacketDescriptor descriptor;
-
-    if (ring_buffer_pop(ctx->ring, &descriptor)) {
+    while(!ring_buffer_pop(ctx->ring,&descriptor)){
+        // Polling
+    }
         printf("Received packet %u\n", descriptor.id);
 
         packet_pool_release(ctx->pool, descriptor.packet);
-    }
+    
 
     return NULL;
 }
