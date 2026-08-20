@@ -5,14 +5,23 @@
 
  struct PacketPool {
     Packet packets[PACKET_POOL_SIZE];
-    bool in_use[PACKET_POOL_SIZE];
+    Packet* free_stack[PACKET_POOL_SIZE];
+    size_t stack_top;
 } ;
+
+
+
 
 PacketPool *packet_pool_create(void){
     PacketPool *pool = calloc(1, sizeof(PacketPool));
     if (!pool) {
         return NULL; // Allocation failed
     }
+    for(size_t i=0; i < PACKET_POOL_SIZE; i++){
+        pool->free_stack[i] = &pool->packets[i];
+    }
+    pool->stack_top = PACKET_POOL_SIZE;
+
     return pool;
 }
 
@@ -25,25 +34,17 @@ void packet_pool_destroy(PacketPool *pool){
 }
 
 Packet *packet_pool_acquire(PacketPool *pool){
-    if(!pool){
+    if(!pool || pool->stack_top == 0){
         return NULL;
     }
-    for(size_t i=0;i<PACKET_POOL_SIZE;i++){
-        if(pool->in_use[i] == false){
-            pool->in_use[i] = true;
-            return &pool->packets[i];
-        }
-    }
-    return NULL;
+    pool->stack_top--;
+    return pool->free_stack[pool->stack_top];
 }
 
 void packet_pool_release(PacketPool *pool, Packet *packet){
-    if(!pool || !packet){
+    if(!pool || !packet || pool->stack_top >= PACKET_POOL_SIZE){
         return;
     }
-    
-    if(packet >= pool->packets && packet < pool->packets + PACKET_POOL_SIZE ){
-        size_t index = packet - pool->packets;
-        pool->in_use[index] = false;
-    }
+    pool->free_stack[pool->stack_top] = packet;   
+    pool->stack_top++;
 }
