@@ -6,7 +6,7 @@ struct PacketPool {
     Packet packets[PACKET_POOL_SIZE];
     Packet* free_stack[PACKET_POOL_SIZE];
     size_t stack_top;
-    atomic_flag lock; 
+    atomic_flag lock;
 };
 
 PacketPool *packet_pool_create(void){
@@ -31,8 +31,8 @@ void packet_pool_destroy(PacketPool *pool){
 Packet *packet_pool_acquire(PacketPool *pool){
     if(!pool) return NULL;
 
-    while (atomic_flag_test_and_set(&pool->lock)) {
-        // Spinlock
+    while (atomic_flag_test_and_set_explicit(&pool->lock, memory_order_acquire)) {
+        // Spin
     }
 
     Packet *packet = NULL;
@@ -41,7 +41,7 @@ Packet *packet_pool_acquire(PacketPool *pool){
         packet = pool->free_stack[pool->stack_top];
     }
 
-    atomic_flag_clear(&pool->lock);
+    atomic_flag_clear_explicit(&pool->lock, memory_order_release);
 
     return packet;
 }
@@ -49,8 +49,8 @@ Packet *packet_pool_acquire(PacketPool *pool){
 void packet_pool_release(PacketPool *pool, Packet *packet){
     if(!pool || !packet) return;
 
-    while (atomic_flag_test_and_set(&pool->lock)) {
-        // Spinlock
+    while (atomic_flag_test_and_set_explicit(&pool->lock, memory_order_acquire)) {
+        // Spin
     }
 
     if(pool->stack_top < PACKET_POOL_SIZE){
@@ -58,5 +58,5 @@ void packet_pool_release(PacketPool *pool, Packet *packet){
         pool->stack_top++;
     }
 
-    atomic_flag_clear(&pool->lock);
+    atomic_flag_clear_explicit(&pool->lock, memory_order_release);
 }

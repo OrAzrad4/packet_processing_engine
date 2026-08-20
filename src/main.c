@@ -14,7 +14,7 @@ typedef struct {      // Pipeline context structure beacause we need to pass bot
 
 void *producer_thread(void *arg){
     PipelineContext *ctx = arg;
-    size_t dropped_packets = 0;
+    size_t ring_full_retries = 0;
 
     for (size_t i = 1; i <= NUM_PACKETS; ) { 
         Packet* packet = NULL;
@@ -33,13 +33,13 @@ void *producer_thread(void *arg){
 
         if (!ring_buffer_push(ctx->ring, &descriptor)) {
             packet_pool_release(ctx->pool, packet);
-            dropped_packets++;
+            ring_full_retries++;
         } else {
             i++; 
         }
     }
 
-    printf("[Producer] Finished sending %d packets. Dropped: %zu\n", NUM_PACKETS, dropped_packets);
+    printf("[Producer] Finished sending %d packets. ring_full_retries: %zu\n", NUM_PACKETS, ring_full_retries);
     return NULL;
 }
 void *consumer_thread(void *arg) {
