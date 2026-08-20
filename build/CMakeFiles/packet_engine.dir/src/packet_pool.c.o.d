@@ -46,4 +46,5 @@ CMakeFiles/packet_engine.dir/src/packet_pool.c.o: \
  /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h \
  /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
  /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h /usr/include/alloca.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib-float.h
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdatomic.h
